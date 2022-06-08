@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import torchvision.transforms as transforms
 
-
+bgr_mean = np.array([103.939, 116.779, 123.68]).astype(np.float32)
 class VGG16(nn.Module):
 
     def __init__(self):
@@ -238,51 +238,52 @@ def load_npz_weights(torch_dict, weights):
     theano_conv_2_torch_tensor(torch_dict, weights, 'arr_52', 'arr_53', 'output', True)
 
 
-model = VGG16()
-torch.save(model.state_dict(), './360.pkl')
+def save_pytorch_model():
+
+    model = VGG16()
+    torch.save(model.state_dict(), './90.pkl')
+
+    npz_path = 'E:\code\salgan-master\scripts\\1845_90_gen_modelWeights0180.npz'
+    pkl_path = '.\\90.pkl'
+
+    npz_weight = np.load(npz_path)
+
+    pkl_weight = torch.load(pkl_path, map_location='cpu')
 
 
-npz_path = '/home/zouzizhuang/SalGAN360/1845_360_gen_modelWeights0180.npz'
-pkl_path = '/home/zouzizhuang/SalGAN360/pytroch/360.pkl'
+    load_npz_weights(pkl_weight, npz_weight)
 
-npz_weight = np.load(npz_path)
-
-pkl_weight = torch.load(pkl_path, map_location='cpu')
-
-
-load_npz_weights(pkl_weight, npz_weight)
-
-torch.save(pkl_weight, './360.pkl')
-del pkl_weight
+    torch.save(pkl_weight, '.\\90.pkl')
+    del pkl_weight
 
 
 
-to_tensor = transforms.ToTensor()
-model = VGG16().cpu()
-weight = torch.load(
-    "./360.pkl", map_location='cpu')
 
-model.load_state_dict(weight, strict=True)
-del weight
-
-
-bgr_mean = np.array([103.939, 116.779, 123.68]).astype(np.float32)
-test = cv2.imread('/home/zouzizhuang/SalGAN360/pytroch/im360.jpg', cv2.IMREAD_COLOR)
-test = cv2.resize(test, (256, 192), interpolation=cv2.INTER_AREA)
-
-image = np.transpose(test, [2, 0, 1])
-image = image.astype(np.float32)
-image -= bgr_mean[:, np.newaxis, np.newaxis]
-X = torch.from_numpy(image)
-X = X.unsqueeze(0)
-
-out = model(X).detach().numpy()
-out = out[0,]
-out = out.transpose(1, 2, 0)
-out = (out * 255).astype(np.uint8)
-
-out = cv2.resize(out, (5000, 2500), interpolation=cv2.INTER_CUBIC)
-out = cv2.GaussianBlur(out, (5, 5), 0)
-out = np.clip(out, 0, 255)
-
-cv2.imwrite('pytorch_output.jpg', out)
+# model = VGG16().cpu()
+# weight = torch.load(
+#     "./360.pkl", map_location='cpu')
+#
+# model.load_state_dict(weight, strict=True)
+# del weight
+#
+#
+# bgr_mean = np.array([103.939, 116.779, 123.68]).astype(np.float32)
+# test = cv2.imread('im360.jpg', cv2.IMREAD_COLOR)
+# image = cv2.resize(test, (256, 192), interpolation=cv2.INTER_AREA)
+#
+# image = np.transpose(image, [2, 0, 1])
+# image = image.astype(np.float32)
+# image -= bgr_mean[:, np.newaxis, np.newaxis]
+# X = torch.from_numpy(image)
+# X = X.unsqueeze(0)
+#
+# out = model(X).detach().numpy()
+# out = out[0,]
+# out = out.transpose(1, 2, 0)
+# out = (out * 255).astype(np.uint8)
+#
+# out = cv2.resize(out, (5000, 2500), interpolation=cv2.INTER_CUBIC)
+# out = cv2.GaussianBlur(out, (5, 5), 0)
+# out = np.clip(out, 0, 255)
+#
+# cv2.imwrite('pytorch_output.jpg', out)
